@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cosmonaut-plugin-trino.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cosmonaut-plugin-trino.labels" . | nindent 4 }}
+    # This label triggers automatic discovery by the Cosmonaut control-plane.
+    # DO NOT remove it.
+    cosmonaut.galileostd.io/plugin: "true"
+    cosmonaut.galileostd.io/plugin-name: "trino"
+spec:
+  selector:
+    {{- include "cosmonaut-plugin-trino.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: grpc
+      protocol: TCP

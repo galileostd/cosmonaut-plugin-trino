@@ -1,0 +1,27 @@
+# Default values for cosmonaut-plugin-trino.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/galileostd/cosmonaut-plugin-trino
+  pullPolicy: IfNotPresent
+  tag: "v0.1.0"
+
+# gRPC server port
+service:
+  port: 50051
+
+# Trino connection — passed to the plugin at runtime via CosmoComponent.spec.config
+# These are NOT hardcoded into the plugin. The control-plane passes them when calling RPCs.
+# Set them here only for documentation purposes.
+trino:
+  # endpoint: http://trino.trino.svc.cluster.local:8080
+  # user: cosmonaut
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
