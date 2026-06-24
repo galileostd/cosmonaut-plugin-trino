@@ -165,6 +165,121 @@ func (p *Plugin) CancelJob(ctx context.Context, req *pluginv1.CancelJobRequest) 
 	}, nil
 }
 
+// GetManifest returns the installation manifest for the Trino plugin.
+// Used by the Cosmonaut UI wizard and CLI installer to guide the operator
+// through installing the plugin and its dependencies.
+func (p *Plugin) GetManifest(_ context.Context, _ *pluginv1.GetManifestRequest) (*pluginv1.GetManifestResponse, error) {
+	return &pluginv1.GetManifestResponse{
+		Manifest: &pluginv1.PluginManifest{
+			// the plugin itself
+			PluginChart: &pluginv1.HelmChart{
+				RepoUrl:   "https://cosmonaut.galileostd.io/charts",
+				RepoName:  "cosmonaut",
+				ChartName: "cosmonaut/cosmonaut-plugin-trino",
+				Version:   "0.1.0",
+			},
+
+			// what the plugin needs in the cluster
+			Dependencies: []*pluginv1.Dependency{
+				{
+					Name:        "trino",
+					DisplayName: "Apache Trino",
+					Description: "Distributed SQL query engine. Required for query execution. " +
+						"You can point to an existing Trino instance or let Cosmonaut install one.",
+					Required:    true,
+					Installable: true,
+					Chart: &pluginv1.HelmChart{
+						RepoUrl:   "https://trinodb.github.io/charts",
+						RepoName:  "trino",
+						ChartName: "trino/trino",
+						Version:   "0.13.0",
+						ValuesTemplate: `coordinator:
+  resources:
+    requests:
+      memory: {{ .coordinator_memory }}
+      cpu: {{ .coordinator_cpu }}
+worker:
+  replicas: {{ .worker_replicas }}
+  resources:
+    requests:
+      memory: {{ .worker_memory }}
+      cpu: {{ .worker_cpu }}
+`,
+					},
+				},
+			},
+
+			// parameters the wizard collects from the operator
+			Params: []*pluginv1.ManifestParam{
+				{
+					Name:         "endpoint",
+					DisplayName:  "Trino coordinator URL",
+					Description:  "Base URL of the Trino coordinator. Example: http://trino.trino.svc.cluster.local:8080",
+					DefaultValue: "http://trino.trino.svc.cluster.local:8080",
+					Required:     true,
+				},
+				{
+					Name:         "user",
+					DisplayName:  "Trino user",
+					Description:  "User for query attribution in Trino.",
+					DefaultValue: "cosmonaut",
+					Required:     false,
+				},
+				{
+					Name:         "coordinator_memory",
+					DisplayName:  "Coordinator memory request",
+					Description:  "Memory request for the Trino coordinator pod.",
+					DefaultValue: "2Gi",
+					Required:     false,
+				},
+				{
+					Name:         "coordinator_cpu",
+					DisplayName:  "Coordinator CPU request",
+					Description:  "CPU request for the Trino coordinator pod.",
+					DefaultValue: "500m",
+					Required:     false,
+				},
+				{
+					Name:         "worker_replicas",
+					DisplayName:  "Worker replicas",
+					Description:  "Number of Trino worker pods.",
+					DefaultValue: "2",
+					Required:     false,
+				},
+				{
+					Name:         "worker_memory",
+					DisplayName:  "Worker memory request",
+					Description:  "Memory request per Trino worker pod.",
+					DefaultValue: "2Gi",
+					Required:     false,
+				},
+				{
+					Name:         "worker_cpu",
+					DisplayName:  "Worker CPU request",
+					Description:  "CPU request per Trino worker pod.",
+					DefaultValue: "500m",
+					Required:     false,
+				},
+			},
+
+			// CosmoComponent template filled with operator-provided params
+			ComponentTemplate: `apiVersion: cosmonaut.galileostd.io/v1
+kind: CosmoComponent
+metadata:
+  name: trino
+  namespace: cosmonaut
+spec:
+  plugin: trino
+  type: query-engine
+  endpoint: "{{ .endpoint }}"
+  healthCheckIntervalSeconds: 30
+  config:
+    user: "{{ .user }}"
+`,
+		},
+	}, nil
+}
+
 // ── private helpers ────────────────────────────────────────────────────────────
 
 func (p *Plugin) executeQuery(ctx context.Context, req *pluginv1.ExecuteRequest) (*pluginv1.ExecuteResponse, error) {

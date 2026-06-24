@@ -1,0 +1,43 @@
+# Binários
+cosmonaut-plugin-trino
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Pacotes de teste
+*.test
+
+# Output de coverage
+*.out
+
+# Vendor
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+
+# Logs
+*.log
+
+# Secrets
+.env
+*.local.yaml
+
+# Go workspace
+go.work
+go.work.sum

@@ -2,7 +2,7 @@ module github.com/galileostd/cosmonaut-plugin-trino
 
 go 1.22
 
-require github.com/galileostd/cosmonaut-sdk v0.1.0
+require github.com/galileostd/cosmonaut-sdk v0.1.2
 
 require (
 	golang.org/x/net v0.22.0 // indirect

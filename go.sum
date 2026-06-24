@@ -1,5 +1,5 @@
-github.com/galileostd/cosmonaut-sdk v0.1.0 h1:GF2FwY0XdLao8IUsKeRvp93M1wwI92pv0dnoy5pHx68=
-github.com/galileostd/cosmonaut-sdk v0.1.0/go.mod h1:yypfvYvHFeE9TO5+AmJhp9wk0soxJcqPuFFqL8axn/E=
+github.com/galileostd/cosmonaut-sdk v0.1.2 h1:7chC4uLDycvMtKTBkINKwRaEggVm1Vvq4YlMJD2obtg=
+github.com/galileostd/cosmonaut-sdk v0.1.2/go.mod h1:yypfvYvHFeE9TO5+AmJhp9wk0soxJcqPuFFqL8axn/E=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 golang.org/x/net v0.22.0 h1:9sGLhx7iRIHEiX0oAJ3MRZMUCElJgy7Br1nO+AMN3Tc=
