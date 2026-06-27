@@ -60,12 +60,12 @@ func (p *Plugin) HealthCheck(ctx context.Context, req *pluginv1.HealthCheckReque
 	if err != nil {
 		slog.Warn("trino health check failed",
 			"component", req.Component.Name,
-			"endpoint", req.Component.Endpoint,
+			"endpoint", req.Component.Config["endpoint"],
 			"err", err,
 		)
 		return &pluginv1.HealthCheckResponse{
 			State:   pluginv1.HealthState_HEALTH_STATE_UNHEALTHY,
-			Message: fmt.Sprintf("failed to reach Trino at %s: %v", req.Component.Endpoint, err),
+			Message: fmt.Sprintf("failed to reach Trino at %s: %v", req.Component.Config["endpoint"], err),
 		}, nil
 	}
 
@@ -359,7 +359,7 @@ func (p *Plugin) killJob(ctx context.Context, req *pluginv1.ExecuteRequest) (*pl
 // The user can be overridden via component.Config["user"].
 func clientFromComponent(component *pluginv1.Component) *client.Client {
 	user := component.Config["user"]
-	return client.New(component.Endpoint, user)
+	return client.New(component.Config["endpoint"], user)
 }
 
 // trinoStateToJobState maps Trino query states to Cosmonaut job states.
@@ -385,4 +385,28 @@ func unhealthy(msg string) *pluginv1.HealthCheckResponse {
 		State:   pluginv1.HealthState_HEALTH_STATE_UNHEALTHY,
 		Message: msg,
 	}
+}
+
+// GetLogs returns the Trino service logs (the coordinator pod). Trino has no
+// per-job pod logs the way Spark does — a query runs inside the coordinator —
+// so JobId is ignored and we always return the coordinator pod's logs.
+func (p *Plugin) GetLogs(ctx context.Context, req *pluginv1.GetLogsRequest) (*pluginv1.GetLogsResponse, error) {
+	if req.Component == nil {
+		return nil, fmt.Errorf("component is required")
+	}
+
+	k8s, err := client.NewK8sClient()
+	if err != nil {
+		return nil, fmt.Errorf("creating kubernetes client: %w", err)
+	}
+
+	namespace := req.Component.Config["service_namespace"]
+	selector := req.Component.Config["pod_selector"]
+
+	lines, err := k8s.GetServiceLogs(ctx, namespace, selector, int64(req.TailLines))
+	if err != nil {
+		return nil, err
+	}
+
+	return &pluginv1.GetLogsResponse{Lines: lines}, nil
 }
